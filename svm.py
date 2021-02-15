@@ -24,6 +24,8 @@ class SVM(object):
         loss = np.sum[l[l>0]] #calculating aggregate loss for these weights
         
         #loss calculations ends here
+        #gradient descent
+        
         
     def predict(self,yData):
         pass
