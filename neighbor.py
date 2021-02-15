@@ -14,7 +14,7 @@ def NN(x,y,xlabels):
 
 def KNN(x,y,xlabels,k):
     ypred = np.zeros(y.shape[0],dtype=xlabels.dtype)
-    for i in range(y.shape[0]):
+    for i in np.arange(y.shape[0]):
         d= np.sum(np.abs(x - y[i,:]),axis=1)
         close = xlabels[np.argsort(d)[0:k]]       
         ypred[i] = np.argmax(np.bincount(close))
