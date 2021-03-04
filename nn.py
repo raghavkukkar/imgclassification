@@ -15,16 +15,17 @@ class Backgates:
 
 # WORK TO DO - GENERALIZE THE BACKPROP ALGO
 class Network:
-    def __init__(self,size,_input,_tags , _validation ,_validtags ):
-        self.input = _input
-        self.valid = _validation
+    def __init__(self,size,_input,_tags , _validation ,_validtags,reg ):
+        self.input = _input/255
+        self.valid = _validation/255
         self.vtags = _validtags
         self.tags = _tags
         self.num_layers = len(size) - 1
         self.sizes = size
-        self.bias = [np.random.randn(y,1) for y in (self.sizes[1:])]
+        self.bias = [0.01*np.random.randn(y,1) for y in (self.sizes[1:])]
 
-        self.weights = [np.random.randn(y,x) for x , y in zip(self.sizes[:-1],self.sizes[1:])]
+        self.weights = [0.01*np.random.randn(y,x) for x , y in zip(self.sizes[:-1],self.sizes[1:])]
+        
         self.gdw = []
         self.gdb = []
         self.convTags()
@@ -35,21 +36,24 @@ class Network:
         self.tags = x
         
     def forwardPass(self):
+        a = self.valid
         
-        for b,w in (self.bias , self.weights):
-            h1 = Activations.sigmoid(np.matmul(w,self.valid) + b)
-        return h1
+        for b,w in zip(self.bias , self.weights):
+            a = Activations.sigmoid(np.matmul(w,a) + b)
+        return a
 
 # SOME BAD SHIT IS HAPPENING HERE DEBUGGING ...
     def update(self,rate):
         for i in range(self.num_layers):
-            self.bias[i] = self.bias[i] - (rate*self.gdb[self.num_layers - i -1])
+            self.bias[i] = self.bias[i] - (rate*self.gdb.pop())
             
-            self.weights[i] = self.weights[i] - rate*self.gdw[self.num_layers - i -1 ]
-        
+            self.weights[i] = self.weights[i] - rate*self.gdw.pop()
+    
      
     def accuracy(self): 
-        return self.forwardPass()
+        y=  self.forwardPass().argmax(axis = 0 )
+        return np.mean(self.vtags == y)
+        
     def train(self , rate,epochs , groups):
       
         
@@ -81,7 +85,9 @@ class Network:
 data , labels = getData('./cifar-10-batches-py/train')
 data= data.T
 
-nn = Network(((32*32*3),50,10), data[:,0:40000], labels[0:40000], data[:,40000:50000], labels[40000:50000])
+nn = Network(((32*32*3),100,10), data[:,0:40000], labels[0:40000], data[:,40000:50000], labels[40000:50000])
 
-nn.train(3,30,40)
+nn.train(0.01,90,50)
+
+acc= nn.accuracy()
 
