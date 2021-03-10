@@ -48,9 +48,9 @@ class Backgates:
 #TODO CONTINUE - ADD MINI BATCH RANDOMIZATION AND TRY IF WE GET BETTER RESULTS
 class Network:
     def __init__(self,size,_input,_tags , _validation ,_validtags,reg ,methods ):
-        self.input = _input/255
+        self.input = _input/255.0
         self.reg = reg
-        self.valid = _validation/255
+        self.valid = _validation/255.0
         self.vtags = _validtags
         self.tags = _tags
         self.num_layers = len(size) - 1
@@ -118,11 +118,15 @@ class Network:
                     x[self.tags[t:t+groups],np.arange(0,groups)] -=1#might be wrong .... most probably wrong NEED CHANGES AND RESEARCH
                     
                     self.gdb.append(x.sum(axis = 1,keepdims = True))
+                    print(self.gdb[-1])
                     self.gdw.append(np.matmul(x,activate[-2].T))
+                    print(self.gdw[-1])
                     x = np.matmul(self.weights[-1].T , x)
                     x = Backgates.leakyReluPrime(zs[-2],x)
                     self.gdb.append(x.sum(axis = 1 , keepdims = True))
+                    print(self.gdb[-1])
                     self.gdw.append(np.matmul(x,activate[-3].T))
+                    print(self.gdw[-1])
                     self.update(rate)
 
 
@@ -133,7 +137,7 @@ yData, yLabels = getData('./cifar-10-batches-py/test')
 yData = yData.T
 nn = Network(((32*32*3),30,10), data[:,0:40000], labels[0:40000], data[:,40000:50000], labels[40000:50000],0.04,(Activations.leakyRelu,Activations.softmax))
 
-nn.train(0.01,400,50)
+nn.train(0.001,400,50)
 
 accValidation = nn.accuracy()
 
