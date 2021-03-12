@@ -1,11 +1,16 @@
 #ULTIMATE TODO PRACTISE INTEGRAL TO ROMAN NUMERAL AND ONE MORE MEDIUM LEETCODE PROBLEM
-
+#IDEA FOR GENERALIZING(SPELL CHECK) THE BACKPROP: THE FIRST THING WE ARE DOING IS GETTING THE LOSS OUTPUT SO IN I = 0 WE ASSIGN IT TO A VARIABLE
+#THEN WE PASS IT THROUGH LAST TWO GATES THAT COULD BE COMBINED LIKE IN THE CASE OF SOFTMAX AND CROSS ENTROPY.
+#THEN WE ARE APPENDING 
+#THEN WE PROPEGATE BY MATMUL SO IF I != 0 WE MATMUL AND THEN ACTIVATE AND THEN APPEND SO THEIR IS A LOOP 
 
 import numpy as np
 from impscript import getData
+import time
 
 # DESIGN CONSIDERATION COULD HAVE IMPLEMENTED IT DIFFERENTLY AND YES IT LOOKS BAD BUT I WANTED TO STATIC METHODS AND CLASSES, BECAUSE IT JUST 
 # MAKES THE STRUCTURE OF CODE CLEAN FOR ME SO THIS IS HOW IT IS IMPLEMENTED BYE! 
+
 
 class Activations:
     @staticmethod
@@ -26,6 +31,8 @@ class Activations:
         y = np.exp(x)
         return y/np.sum(y,axis = 0)
         
+
+
 #TODO SOFTMAX ACTIVATION BACKGATE - I'M NOTGOING TO IMPLEMENT TODAY BECAUSE I COULD NOT REALLY UNDERSTAND THE DERIVATIVE.
 #UPDATE I UNDERSTOOD AND KINDA IMPLEMENTED THE LOSS + SOFTMAX GATE 
 class Backgates:
@@ -44,7 +51,7 @@ class Backgates:
     
 # MAIN CLASS FOR NETWORK 
 
-# WORK TO DO - GENERALIZE THE BACKPROP ALGO AND ADD CROSS ENTROPY LOSS CALCULATION AND TRY IT WITH SOFTMAX RELU SIGMOID
+# WORK TO DO - GENERALIZE THE BACKPROP ALGO
 #TODO CONTINUE - ADD MINI BATCH RANDOMIZATION AND TRY IF WE GET BETTER RESULTS
 class Network:
     def __init__(self,size,_input,_tags , _validation ,_validtags,reg ,methods ):
@@ -81,7 +88,7 @@ class Network:
     def update(self,rate):
         for i in range(self.num_layers):
             self.bias[i] += -(rate*self.gdb.pop())
-            self.weights[i] += -(rate*self.gdw.pop() + self.reg*self.weights[i])
+            self.weights[i] += -rate*(self.gdw.pop() + self.reg*self.weights[i])
     
      
     def accuracy(self , x = None, xtags = None):
@@ -97,7 +104,8 @@ class Network:
       
         
         for e in range(epochs):
-            print(e)
+            print(e, "yo oy")
+            t1 = time.time()
             for t in range(0,self.input.shape[1] , groups):
                 
                     activate = [self.input[:,t: t + groups]]
@@ -112,7 +120,6 @@ class Network:
                     d = -np.log(d)
                     d = np.sum(d)/groups
                     # regLoss = 0.5*self.reg*np.sum(self.weights[0] * self.weights[0])+0.5*self.reg*np.sum(self.weights[1] * self.weights[1])
-                    print(d)
                     #BACKWARD PASS OR BACKPROP
                     x = activate[-1]
                     x[self.tags[t:t+groups],np.arange(0,groups)] -=1#might be wrong .... most probably wrong NEED CHANGES AND RESEARCH
@@ -128,18 +135,19 @@ class Network:
                     self.gdw.append(np.matmul(x,activate[-3].T))
                     
                     self.update(rate)
-
+            print(time.time() - t1)
+                    
         return d
 
 data , labels = getData('./cifar-10-batches-py/train')
 data= data.T
 yData, yLabels = getData('./cifar-10-batches-py/test')
 yData = yData.T
-nn = Network(((32*32*3),50,10), data[:,0:25000], labels[0:25000], data[:,40000:50000], labels[40000:50000],0,(Activations.relu,Activations.softmax))
+nn = Network(((32*32*3),50,10), data[:,0:25000], labels[0:25000], data[:,40000:50000], labels[40000:50000],0.01,(Activations.relu,Activations.softmax))
 
-loss = nn.train(0.001,2000,40)
+loss = nn.train(0.001,50,100)
 
-accValidation = nn.accuracy()
+# accValidation = nn.accuracy()
 
-accTrain = nn.accuracy(yData , yLabels)
+# accTrain = nn.accuracy(yData , yLabels)
 
