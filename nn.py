@@ -33,9 +33,9 @@ class Backgates:
     def sigPrime(x,y =1):
         return y*Activations.sigmoid(x)*(1 - Activations.sigmoid(x))
     @staticmethod 
-    def reluPrime(x,y = 1):
-        x[x <= 0 ] = 0
-        return y*(x)
+    def reluPrime(x,y ):
+        y[x <= 0] = 0
+        
     @staticmethod
     def leakyReluPrime(x, y = 1):
         x[x > 0] = 1
@@ -57,11 +57,11 @@ class Network:
         self.sizes = size
         self.bias = [np.zeros((y,1)) for y in (self.sizes[1:])]
         self.methods = methods
-        self.weights = [0.001*np.random.randn(y,x) for x , y in zip(self.sizes[:-1],self.sizes[1:])]
+        self.weights = [0.01*np.random.randn(y,x) for x , y in zip(self.sizes[:-1],self.sizes[1:])]
         
         self.gdw = []
         self.gdb = []
-        
+        print(self.input.shape[1])
     
     def convTags(self):
         x = np.zeros((self.sizes[-1] , self.tags.shape[0]))
@@ -81,7 +81,7 @@ class Network:
     def update(self,rate):
         for i in range(self.num_layers):
             self.bias[i] += -(rate*self.gdb.pop())
-            self.weights[i] += -(rate*self.reg*self.gdw.pop())
+            self.weights[i] += -(rate*self.gdw.pop() + self.reg*self.weights[i])
     
      
     def accuracy(self , x = None, xtags = None):
@@ -98,7 +98,7 @@ class Network:
         
         for e in range(epochs):
             print(e)
-            for t in range(0,self.input.shape[0] , groups):
+            for t in range(0,self.input.shape[1] , groups):
                 
                     activate = [self.input[:,t: t + groups]]
                     zs = []
@@ -112,32 +112,32 @@ class Network:
                     d = -np.log(d)
                     d = np.sum(d)/groups
                     # regLoss = 0.5*self.reg*np.sum(self.weights[0] * self.weights[0])+0.5*self.reg*np.sum(self.weights[1] * self.weights[1])
-                    print(d )
+                    print(d)
                     #BACKWARD PASS OR BACKPROP
                     x = activate[-1]
                     x[self.tags[t:t+groups],np.arange(0,groups)] -=1#might be wrong .... most probably wrong NEED CHANGES AND RESEARCH
-                    
+                    x /= groups
                     self.gdb.append(x.sum(axis = 1,keepdims = True))
-                    print(self.gdb[-1])
+                    
                     self.gdw.append(np.matmul(x,activate[-2].T))
-                    print(self.gdw[-1])
+                    
                     x = np.matmul(self.weights[-1].T , x)
-                    x = Backgates.leakyReluPrime(zs[-2],x)
+                    Backgates.reluPrime(zs[-2],x)
                     self.gdb.append(x.sum(axis = 1 , keepdims = True))
-                    print(self.gdb[-1])
+                    
                     self.gdw.append(np.matmul(x,activate[-3].T))
-                    print(self.gdw[-1])
+                    
                     self.update(rate)
 
-
+        return d
 
 data , labels = getData('./cifar-10-batches-py/train')
 data= data.T
 yData, yLabels = getData('./cifar-10-batches-py/test')
 yData = yData.T
-nn = Network(((32*32*3),30,10), data[:,0:40000], labels[0:40000], data[:,40000:50000], labels[40000:50000],0.04,(Activations.leakyRelu,Activations.softmax))
+nn = Network(((32*32*3),50,10), data[:,0:25000], labels[0:25000], data[:,40000:50000], labels[40000:50000],0,(Activations.relu,Activations.softmax))
 
-nn.train(0.001,400,50)
+loss = nn.train(0.001,2000,40)
 
 accValidation = nn.accuracy()
 

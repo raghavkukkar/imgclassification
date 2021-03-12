@@ -20,7 +20,7 @@ def getData(src):
             label = x['labels']
             imgs.append(img)
             labels.append(np.array(label))
-    return np.concatenate(imgs).reshape(len(imgs)*imgs[0].shape[0],3072).astype(np.float32), np.concatenate(labels).astype(np.uint8)
+    return np.concatenate(imgs).reshape(len(imgs)*imgs[0].shape[0],3072).astype(np.float64), np.concatenate(labels).astype(np.uint8)
             
 
 def imageMean(X):
