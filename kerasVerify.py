@@ -2,7 +2,7 @@
 """
 Created on Fri Mar 12 16:15:34 2021
 
-@author: Work
+@author: Raghav
 """
 
 import tensorflow.keras as keras
@@ -12,12 +12,14 @@ from tensorflow.keras.layers import *
 #%% Make model here
 
 input_tensor=Input((3072))
-dns1=Dense(units=50)(input_tensor)
+dns1=Dense(units=100)(input_tensor)
 act1=Activation(keras.activations.relu)(dns1)
-dns2=Dense(units=10)(act1)
-act2=Activation(keras.activations.softmax)(dns2)
+dns2=Dense(units=50)(act1)
+act2=Activation(keras.activations.relu)(dns2)
+dns3 = Dense(units = 10)(act2)
+act3 = Activation(keras.activations.softmax)(dns3)
 
-model=Model(inputs=input_tensor, outputs=act2)
+model=Model(inputs=input_tensor, outputs=act3)
 
 model.compile(optimizer=keras.optimizers.SGD(learning_rate=0.001), loss=keras.losses.categorical_crossentropy, metrics=["accuracy"])
 model.summary()
